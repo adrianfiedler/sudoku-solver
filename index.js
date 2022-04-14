@@ -6,16 +6,37 @@ let numbersCopy = [];
 let iteration = 0;
 let iterationP;
 let solved = false;
+let simpleSolver = true;
+let easyMode = true;
 
 function setup() {
   createCanvas(600, 600);
-  fillNumbersEasy();
   frameRate(1);
   const easyBtn = createButton("Easy");
-  easyBtn.mousePressed(fillNumbersEasy);
+  easyBtn.mousePressed(() => {
+    easyMode = true;
+    reset();
+  });
   const hardBtn = createButton("Hard");
-  hardBtn.mousePressed(fillNumbersHard);
+  hardBtn.mousePressed(() => {
+    easyMode = false;
+    reset();
+  });
+
+  createDiv("");
+
+  const simpleSolverBtn = createButton("Simple Solver");
+  simpleSolverBtn.mousePressed(() => {
+    simpleSolver = true;
+    reset();
+  });
+  const backtrackingBtn = createButton("Backtracking");
+  backtrackingBtn.mousePressed(() => {
+    simpleSolver = false;
+    reset();
+  });
   iterationP = createP("Iteration: " + iteration);
+  reset();
 }
 
 function draw() {
@@ -61,12 +82,21 @@ function draw() {
       }
     }
   }
-  solveNumber();
+  if (simpleSolver) {
+    solveNumberSimple();
+  } else {
+    solveNumberBacktracking();
+  }
+  if (checkSolved() && !solved) {
+    console.log("SOLVED");
+    solved = true;
+    createP("Solved!");
+  }
+
   // noLoop();
 }
 
-function solveNumber() {
-  let filled = 0;
+function solveNumberSimple() {
   for (let i = 0; i < numFields; i++) {
     for (let j = 0; j < numFields; j++) {
       if (numbers[i][j]) {
@@ -107,14 +137,19 @@ function solveNumber() {
 
       if (candidates.length == 1) {
         numbers[i][j] = candidates[0];
-        filled++;
       }
     }
   }
-  if (filled == 0 && !solved) {
-    console.log("SOLVED");
-    solved = true;
-    createP("Solved!");
+}
+
+function solveNumberBacktracking() {
+  let filled = 0;
+  for (let i = 0; i < numFields; i++) {
+    for (let j = 0; j < numFields; j++) {
+      if (numbers[i][j]) {
+        continue;
+      }
+    }
   }
 }
 
@@ -124,10 +159,37 @@ function createEmptyArray() {
   }
 }
 
+function reset() {
+  iteration = 0;
+  solved = false;
+  createEmptyArray();
+  if (easyMode) {
+    fillNumbersEasy();
+  } else {
+    fillNumbersHard();
+  }
+  numbersCopy = JSON.parse(JSON.stringify(numbers));
+}
+
+function checkSolved() {
+  if (numbers.length != numFields) {
+    return false;
+  }
+  for (let i = 0; i < numbers.length; i++) {
+    if (numbers[i].length != numFields) {
+      return false;
+    }
+    for (let j = 0; j < numbers[i].length; j++) {
+      if (!numbers[i][j]) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 // fill array with start sudoku numbers
 function fillNumbersEasy() {
-  iteration = 0;
-  createEmptyArray();
   numbers[0][0] = 9;
   numbers[0][2] = 4;
   numbers[0][3] = 6;
@@ -173,12 +235,9 @@ function fillNumbersEasy() {
   numbers[7][4] = 6;
   numbers[7][6] = 1;
   numbers[7][8] = 5;
-  numbersCopy = JSON.parse(JSON.stringify(numbers));
 }
 
 function fillNumbersHard() {
-  iteration = 0;
-  createEmptyArray();
   numbers[1][0] = 2;
   numbers[1][1] = 6;
   numbers[1][2] = 9;
@@ -209,5 +268,4 @@ function fillNumbersHard() {
 
   numbers[8][0] = 6;
   numbers[8][6] = 5;
-  numbersCopy = JSON.parse(JSON.stringify(numbers));
 }
