@@ -199,6 +199,7 @@ function reset() {
   j = 0;
   iteration = 0;
   solved = false;
+  backtracking = false;
   createEmptyArray();
   if (easyMode) {
     fillNumbersEasy();
