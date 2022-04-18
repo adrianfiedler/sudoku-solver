@@ -14,7 +14,7 @@ let backtracking = false;
 
 function setup() {
   createCanvas(600, 600);
-  frameRate(30);
+  console.log(frameRate());
   const easyBtn = createButton("Easy");
   easyBtn.mousePressed(() => {
     easyMode = true;
@@ -38,12 +38,14 @@ function setup() {
     simpleSolver = false;
     reset();
   });
+  slider = createSlider(1, 60, 60, 1);
   iterationP = createP("Iteration: " + iteration);
   reset();
 }
 
 function draw() {
   background(51);
+  frameRate(slider.value());
   if (!solved) {
     iteration++;
   }
