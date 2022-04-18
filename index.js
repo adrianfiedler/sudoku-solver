@@ -8,10 +8,13 @@ let iterationP;
 let solved = false;
 let simpleSolver = true;
 let easyMode = true;
+let i = 0;
+let j = 0;
+let backtracking = false;
 
 function setup() {
   createCanvas(600, 600);
-  frameRate(1);
+  frameRate(30);
   const easyBtn = createButton("Easy");
   easyBtn.mousePressed(() => {
     easyMode = true;
@@ -97,57 +100,89 @@ function draw() {
 }
 
 function solveNumberSimple() {
-  for (let i = 0; i < numFields; i++) {
-    for (let j = 0; j < numFields; j++) {
-      if (numbers[i][j]) {
-        continue;
-      }
-      let candidates = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+  if (i >= 0 && j >= 0 && i < numFields && j < numFields && !numbers[i][j]) {
+    let candidates = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-      // col
-      for (let k = 0; k < numbers[i].length; k++) {
-        let index = candidates.indexOf(numbers[i][k]);
-        if (index > -1) {
-          candidates.splice(index, 1);
-        }
-      }
-
-      // row
-      for (let k = 0; k < numbers.length; k++) {
-        let index = candidates.indexOf(numbers[k][j]);
-        if (index > -1) {
-          candidates.splice(index, 1);
-        }
-      }
-
-      // loop over current 3x3 region in numbers
-      let startX = Math.floor(i / fieldSeperator) * fieldSeperator;
-      let startY = Math.floor(j / fieldSeperator) * fieldSeperator;
-      for (let k = startX; k < startX + fieldSeperator; k++) {
-        for (let l = startY; l < startY + fieldSeperator; l++) {
-          let index = candidates.indexOf(numbers[k][l]);
-          if (index > -1) {
-            candidates.splice(index, 1);
-          }
-        }
-      }
-
-      console.log("candidates for i:" + i + ", j:" + j + ": " + candidates);
-      console.log(candidates);
-
-      if (candidates.length == 1) {
-        numbers[i][j] = candidates[0];
+    // col
+    for (let k = 0; k < numbers[i].length; k++) {
+      let index = candidates.indexOf(numbers[i][k]);
+      if (index > -1) {
+        candidates.splice(index, 1);
       }
     }
+
+    // row
+    for (let k = 0; k < numbers.length; k++) {
+      let index = candidates.indexOf(numbers[k][j]);
+      if (index > -1) {
+        candidates.splice(index, 1);
+      }
+    }
+
+    // loop over current 3x3 region in numbers
+    let startX = Math.floor(i / fieldSeperator) * fieldSeperator;
+    let startY = Math.floor(j / fieldSeperator) * fieldSeperator;
+    for (let k = startX; k < startX + fieldSeperator; k++) {
+      for (let l = startY; l < startY + fieldSeperator; l++) {
+        let index = candidates.indexOf(numbers[k][l]);
+        if (index > -1) {
+          candidates.splice(index, 1);
+        }
+      }
+    }
+
+    console.log("candidates for i:" + i + ", j:" + j + ": " + candidates);
+    console.log(candidates);
+
+    if (candidates.length == 1) {
+      numbers[i][j] = candidates[0];
+    }
+  }
+  j++;
+  if (j == numFields) {
+    j = 0;
+    i++;
+  }
+  if (i == numFields) {
+    i = 0;
   }
 }
 
 function solveNumberBacktracking() {
-  let filled = 0;
-  for (let i = 0; i < numFields; i++) {
-    for (let j = 0; j < numFields; j++) {
-      if (numbers[i][j]) {
-        continue;
+  if (backtracking) {
+    j--;
+    if (j < 0) {
+      i--;
+      j = numFields - 1;
+    }
+    if (!numbersCopy[i][j]) {
+      backtracking = false;
+    }
+  } else {
+    if (i < numFields && i >= 0) {
+      if (!numbers[i][j]) {
+        numbers[i][j] = 0;
+      }
+      if (!numbersCopy[i][j]) {
+        numbers[i][j]++;
+      }
+      while (
+        !numbersCopy[i][j] &&
+        !checkValidNumber(i, j) &&
+        numbers[i][j] <= numFields
+      ) {
+        numbers[i][j]++;
+      }
+      if (numbers[i][j] > numFields) {
+        // no solution found --> track back
+        backtracking = true;
+        numbers[i][j] = undefined;
+      } else {
+        j++;
+        if (j == numFields) {
+          i++;
+          j = 0;
+        }
       }
     }
   }
@@ -160,6 +195,8 @@ function createEmptyArray() {
 }
 
 function reset() {
+  i = 0;
+  j = 0;
   iteration = 0;
   solved = false;
   createEmptyArray();
@@ -169,6 +206,43 @@ function reset() {
     fillNumbersHard();
   }
   numbersCopy = JSON.parse(JSON.stringify(numbers));
+}
+
+function checkValidNumber(i, j) {
+  // col
+  for (let k = 0; k < numFields; k++) {
+    if (k == j) {
+      continue;
+    }
+    if (numbers[i][k] == numbers[i][j]) {
+      return false;
+    }
+  }
+
+  // row
+  for (let k = 0; k < numFields; k++) {
+    if (k == i) {
+      continue;
+    }
+    if (numbers[k][j] == numbers[i][j]) {
+      return false;
+    }
+  }
+
+  // loop over current 3x3 region in numbers
+  let startX = Math.floor(i / fieldSeperator) * fieldSeperator;
+  let startY = Math.floor(j / fieldSeperator) * fieldSeperator;
+  for (let k = startX; k < startX + fieldSeperator; k++) {
+    for (let l = startY; l < startY + fieldSeperator; l++) {
+      if (k == i && l == j) {
+        continue;
+      }
+      if (numbers[k][l] == numbers[i][j]) {
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 function checkSolved() {
